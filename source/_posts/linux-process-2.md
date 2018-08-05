@@ -1,5 +1,5 @@
 ---
-title: linux-process-2
+title: linux进程、线程和调度(二)
 date: 2018-07-20 17:02:26
 categories: Linux
 tags: Process
