@@ -7,7 +7,7 @@ tags: Process
 
 ## fork、vfork
 #### fork
-fork的结果，是创建出新的task_struct，当子进程的task_struct刚被创建出来是，其成员(即资源)完全是从父进程处对拷过来的，即执行一个copy。此时，任何资源的修改都造成分裂。<br>
+fork的结果，是创建出新的task_struct，当子进程的task_struct刚被创建出来时，其成员(即资源)完全是从父进程处对拷过来的，即执行一个copy。此时，任何资源的修改都造成分裂。<br>
 其中，除了一种资源外其他资源的分裂都比较好理解，这种资源就是内存资源。考虑以下代码：
 ```
 #include <sched.h>

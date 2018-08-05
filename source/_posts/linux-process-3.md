@@ -38,7 +38,7 @@ tags: Process
 ### 早期2.6任务调度机制
 #### 优先级数组和Bitmaps
 首先看下面这幅图：<br />
-<img src="https://github.com/howar-luo/image_repo/blob/master/20180801/task_bitmap.png?raw=true" width="60%" height="" /><br />
+<img src="https://github.com/howar-luo/image_repo/blob/master/20180801/task_bitmap.png?raw=true" width="90%" height="" /><br />
 早起操作系统有一个140个元素的bitmap，其中0-99是给实时任务的，100-139是给普通任务的。
 
 #### SCHED_FIFO、SCHED_RR
@@ -62,7 +62,7 @@ SCHED_RR：不同优先级按照优先级高的先跑到睡眠，优先级低的
 Linux在发展过程中，SCHED_FIFO和SCHED_RR变化并不大，主要变化的是SCHED_NORMAL。
 
 现在的SCHED_NORAML最著名的当数CFS了，CFS使用红黑树的数据结构，如下图：<br />
-<img src="https://github.com/howar-luo/image_repo/blob/master/20180802/CFS.png?raw=true" width="60%" height="" /><br />
+<img src="https://github.com/howar-luo/image_repo/blob/master/20180802/CFS.png?raw=true" width="90%" height="" /><br />
 在上述红黑树中，左边节点小于右边节点的值，系统总是选择树的最左边的节点进行调度。
 
 其中，节点上的数字代表是的是进程运行到目前为止的vruntime，即进程多的虚拟运行时间。其计算公式可以简单按下式理解：
@@ -73,6 +73,6 @@ vruntime += delta* NICE_0_LOAD/ se.weight
 `delta`为实际运行时间
 `NICE_0_LOAD`为标准值1024
 `se.weight`为权重，如下图所示:<br />
-<img src="https://github.com/howar-luo/image_repo/blob/master/20180805/nice_weight.png?raw=true" width="60%" height="" /><br />
+<img src="https://github.com/howar-luo/image_repo/blob/master/20180805/nice_weight.png?raw=true" width="90%" height="" /><br />
 
 
