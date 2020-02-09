@@ -1,15 +1,775 @@
-extends includes/layout.pug
+<!DOCTYPE html>
 
-block content
-  .inner
-    h2= page.title
-    != page.content
-    if theme.post.backHome
-      if theme.post.backHome_hr
-        hr
-      p
-        - var prefix = theme.post.backHome_prefix
-        - var suffix = theme.post.backHome_suffix
-        span!= prefix 
-        a(href="/")= theme.post.backHome_content
-        span!= suffix
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Process,">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="吞吐率 vs. 响应计算机系统的总体性能标准是响应时间和吞吐量。 响应时间是提交请求和返回该请求的响应之间使用的时间。示例包括：  数据库查询花费的时间 将字符回显到终端上花费的时间 访问 Web 页面花费的时间  吞吐量是对单位时间内完成的工作量的量度。示例包括：  每分钟的数据库事务 每秒传送的文件千字节数 每秒读或写的文件千字节数 每分钟的 Web 服务器命中数这些度量之间的关系很复杂。有时">
+<meta name="keywords" content="Process">
+<meta property="og:type" content="article">
+<meta property="og:title" content="linux进程、线程和调度(三)">
+<meta property="og:url" content="http://www.howar.cn/2018/07/22/linux-process-3/index.html">
+<meta property="og:site_name" content="Howar&#39;s Blog">
+<meta property="og:description" content="吞吐率 vs. 响应计算机系统的总体性能标准是响应时间和吞吐量。 响应时间是提交请求和返回该请求的响应之间使用的时间。示例包括：  数据库查询花费的时间 将字符回显到终端上花费的时间 访问 Web 页面花费的时间  吞吐量是对单位时间内完成的工作量的量度。示例包括：  每分钟的数据库事务 每秒传送的文件千字节数 每秒读或写的文件千字节数 每分钟的 Web 服务器命中数这些度量之间的关系很复杂。有时">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="https://github.com/howar-luo/image_repo/blob/master/20180801/task_bitmap.png?raw=true">
+<meta property="og:image" content="https://github.com/howar-luo/image_repo/blob/master/20180802/CFS.png?raw=true">
+<meta property="og:image" content="https://github.com/howar-luo/image_repo/blob/master/20180805/nice_weight.png?raw=true">
+<meta property="og:updated_time" content="2020-02-08T09:21:19.742Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="linux进程、线程和调度(三)">
+<meta name="twitter:description" content="吞吐率 vs. 响应计算机系统的总体性能标准是响应时间和吞吐量。 响应时间是提交请求和返回该请求的响应之间使用的时间。示例包括：  数据库查询花费的时间 将字符回显到终端上花费的时间 访问 Web 页面花费的时间  吞吐量是对单位时间内完成的工作量的量度。示例包括：  每分钟的数据库事务 每秒传送的文件千字节数 每秒读或写的文件千字节数 每分钟的 Web 服务器命中数这些度量之间的关系很复杂。有时">
+<meta name="twitter:image" content="https://github.com/howar-luo/image_repo/blob/master/20180801/task_bitmap.png?raw=true">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://www.howar.cn/2018/07/22/linux-process-3/">
+
+
+
+
+
+  <title>linux进程、线程和调度(三) | Howar's Blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Howar's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://www.howar.cn/2018/07/22/linux-process-3/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Howar">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Howar's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">linux进程、线程和调度(三)</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-07-22T20:09:42+08:00">
+                2018-07-22
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Linux/" itemprop="url" rel="index">
+                    <span itemprop="name">Linux</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="吞吐率-vs-响应"><a href="#吞吐率-vs-响应" class="headerlink" title="吞吐率 vs. 响应"></a>吞吐率 vs. 响应</h2><p>计算机系统的总体性能标准是响应时间和吞吐量。</p>
+<p>响应时间是提交请求和返回该请求的响应之间使用的时间。<br><br>示例包括：</p>
+<ul>
+<li>数据库查询花费的时间</li>
+<li>将字符回显到终端上花费的时间</li>
+<li>访问 Web 页面花费的时间</li>
+</ul>
+<p>吞吐量是对单位时间内完成的工作量的量度。<br><br>示例包括：</p>
+<ul>
+<li>每分钟的数据库事务</li>
+<li>每秒传送的文件千字节数</li>
+<li>每秒读或写的文件千字节数</li>
+<li>每分钟的 Web 服务器命中数<br>这些度量之间的关系很复杂。有时可能以响应时间为代价而得到较高的吞吐量，而有时候又要以吞吐量为代价得到较好的响应时间。在其他情况下，一个单独的更改可能对两者都有提高。可接受的性能基于合理的吞吐量与合理的响应时间相结合。</li>
+</ul>
+<p>吞吐和响应之间的矛盾:<br></p>
+<ul>
+<li>响应 : 最小化某个任务的响应时间，哪怕牺牲其他的任务为代价</li>
+<li>吞吐: 全局视野，整个系统的workload被最大化处理</li>
+</ul>
+<h4 id="I-O消耗型-vs-CPU消耗型"><a href="#I-O消耗型-vs-CPU消耗型" class="headerlink" title="I/O消耗型 vs. CPU消耗型"></a>I/O消耗型 vs. CPU消耗型</h4><ul>
+<li>IO bound: CPU利用率低，进程的运行效率主要受限于I/O速度。主要关注是否能被及时调度到，不关注CPU是否强劲。</li>
+<li>CPU bound: 多数时间花在CPU上面(做运算)。主要关注CPU是否强劲。<blockquote>
+<p>ARM架构中的<code>big.LITTLE</code>就是基于这种考虑：将I/O消耗型任务放到小核上执行，将CPU消耗型任务放到大核上执行。这样可以最大限度的利用CPU的性能。</p>
+</blockquote>
+</li>
+</ul>
+<h2 id="Linux任务调度机制"><a href="#Linux任务调度机制" class="headerlink" title="Linux任务调度机制"></a>Linux任务调度机制</h2><p>通用Linux系统支持实时和非实时两种进程，实时进程相对于普通进程具有绝对的优先级。对应地，实时进程采用SCHED_FIFO或者SCHED_RR调度策略，普通的进程采用SCHED_OTHER调度策略。</p>
+<h3 id="早期2-6任务调度机制"><a href="#早期2-6任务调度机制" class="headerlink" title="早期2.6任务调度机制"></a>早期2.6任务调度机制</h3><h4 id="优先级数组和Bitmaps"><a href="#优先级数组和Bitmaps" class="headerlink" title="优先级数组和Bitmaps"></a>优先级数组和Bitmaps</h4><p>首先看下面这幅图：<br><br><img src="https://github.com/howar-luo/image_repo/blob/master/20180801/task_bitmap.png?raw=true" width="90%" height><br><br>早起操作系统有一个140个元素的bitmap，其中0-99是给实时任务的，100-139是给普通任务的。</p>
+<h4 id="SCHED-FIFO、SCHED-RR"><a href="#SCHED-FIFO、SCHED-RR" class="headerlink" title="SCHED_FIFO、SCHED_RR"></a>SCHED_FIFO、SCHED_RR</h4><p>SCHED_FIFO：不同优先级按照优先级高的先跑到睡眠，优先级低的再跑；同等优先级先进先出。</p>
+<p>SCHED_RR：不同优先级按照优先级高的先跑到睡眠，优先级低的再跑；同等优先级轮转。</p>
+<p>在不同优先级的情况下，这两者的表现是一样的，即高优先级的任务先跑，直到高优先级的任务睡眠，低优先级的任务再跑。</p>
+<p>在相同优先级的情况下，这两种任务调度策略是有区别的：SCHED_FIFO会才有先进先出的原则进行调度，即先ready的任务跑到休眠后，才调度后ready的任务；而SCHED_RR则会轮转调度所有ready的任务，你执行一下我执行一下。</p>
+<h4 id="SCHED-NORMAL"><a href="#SCHED-NORMAL" class="headerlink" title="SCHED_NORMAL"></a>SCHED_NORMAL</h4><p>普通任务的调度策略采用SCHED_NORMAL，不同优先级的任务进行轮转。普通任务的优先级为100-139，但是普通任务的优先级高并不会相比低优先级的任务有绝对的优势，有两个优势：可以得到更高的时间片；醒来后可以抢占低优先级任务。普通任务调度将优先级转化为nice值（-20-19）。</p>
+<p>在运行过程中，会根据任务的睡眠情况对nice进行奖励和惩罚。任务越喜欢睡觉，系统就会越奖励；任务越喜欢运行，系统就会越惩罚。这样做的目的是想让I/O消耗型的任务在和CPU消耗型的任务竞争的过程中，能够很好的竞争。</p>
+<blockquote>
+<p>在Linux后期发展过程中，增加了补丁，从而限制了实时任务最大的运行时间占用率(95%)，即实时任务即使不主动放弃CPU，系统至少还会分配5%的CPU给普通进程。</p>
+</blockquote>
+<h3 id="当前Linux任务调度机制"><a href="#当前Linux任务调度机制" class="headerlink" title="当前Linux任务调度机制"></a>当前Linux任务调度机制</h3><p>Linux在发展过程中，SCHED_FIFO和SCHED_RR变化并不大，主要变化的是SCHED_NORMAL。</p>
+<p>现在的SCHED_NORAML最著名的当数CFS了，CFS使用红黑树的数据结构，如下图：<br><br><img src="https://github.com/howar-luo/image_repo/blob/master/20180802/CFS.png?raw=true" width="90%" height><br><br>在上述红黑树中，左边节点小于右边节点的值，系统总是选择树的最左边的节点进行调度。</p>
+<p>其中，节点上的数字代表是的是进程运行到目前为止的vruntime，即进程多的虚拟运行时间。其计算公式可以简单按下式理解：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vruntime += delta* NICE_0_LOAD/ se.weight</span><br></pre></td></tr></table></figure>
+
+<p>其中：<br><br><code>delta</code>为实际运行时间<br><code>NICE_0_LOAD</code>为标准值1024<br><code>se.weight</code>为权重，如下图所示:<br><br><img src="https://github.com/howar-luo/image_repo/blob/master/20180805/nice_weight.png?raw=true" width="90%" height><br></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Process/" rel="tag"># Process</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/07/20/linux-process-2/" rel="next" title="linux进程、线程和调度(二)">
+                <i class="fa fa-chevron-left"></i> linux进程、线程和调度(二)
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">Howar</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives">
+              
+                  <span class="site-state-item-count">7</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">3</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">5</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#吞吐率-vs-响应"><span class="nav-number">1.</span> <span class="nav-text">吞吐率 vs. 响应</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#I-O消耗型-vs-CPU消耗型"><span class="nav-number">1.0.1.</span> <span class="nav-text">I/O消耗型 vs. CPU消耗型</span></a></li></ol></li></ol><li class="nav-item nav-level-2"><a class="nav-link" href="#Linux任务调度机制"><span class="nav-number">2.</span> <span class="nav-text">Linux任务调度机制</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#早期2-6任务调度机制"><span class="nav-number">2.1.</span> <span class="nav-text">早期2.6任务调度机制</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#优先级数组和Bitmaps"><span class="nav-number">2.1.1.</span> <span class="nav-text">优先级数组和Bitmaps</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#SCHED-FIFO、SCHED-RR"><span class="nav-number">2.1.2.</span> <span class="nav-text">SCHED_FIFO、SCHED_RR</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#SCHED-NORMAL"><span class="nav-number">2.1.3.</span> <span class="nav-text">SCHED_NORMAL</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#当前Linux任务调度机制"><span class="nav-number">2.2.</span> <span class="nav-text">当前Linux任务调度机制</span></a></li></ol></li></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Howar</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
