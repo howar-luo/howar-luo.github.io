@@ -1,348 +1,54 @@
-<!DOCTYPE html>
-
-
-
-  
-
-
-<html class="theme-next pisces use-motion" lang="zh-Hans">
+<html>
 <head><meta name="generator" content="Hexo 3.9.0">
-  <meta charset="UTF-8">
-<meta http-equiv="X-UA-Compatible" content="IE=edge">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-<meta name="theme-color" content="#222">
-
-
-
-
-
-
-
-
-
-<meta http-equiv="Cache-Control" content="no-transform">
-<meta http-equiv="Cache-Control" content="no-siteapp">
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  
-  
-  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
-
-
-
-
-
-
-
-<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
-
-<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css">
-
-
-  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
-
-
-  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
-
-
-  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
-
-
-  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
-
-
-
-
-
-  <meta name="keywords" content="Shell,">
-
-
-
-
-
-
-
-
-
-
-<meta name="description" content="1. 什么是文件描述符&amp;emsp;&amp;emsp;文件描述符即file descriptor，是内核为了高效管理已经被打开的文件所创建的索引。它是一个非负整数，用于指被打开的文件。所有执行I/O操作的系统调用都是通过文件描述符。 &amp;emsp;&amp;emsp;程序刚刚启动时，默认分配文件描述符0为标准输入、1为标准输出、2为标准错误。 2. 文件重定向2.1 标准输出重定向&amp;emsp;&amp;emsp;标准输出重">
-<meta name="keywords" content="Shell">
-<meta property="og:type" content="article">
-<meta property="og:title" content="Linux shell标准输入&#x2F;输出&#x2F;错误重定向">
-<meta property="og:url" content="http://www.howar.cn/2018/07/16/input_output_error/index.html">
-<meta property="og:site_name" content="Howar&#39;s Blog">
-<meta property="og:description" content="1. 什么是文件描述符&amp;emsp;&amp;emsp;文件描述符即file descriptor，是内核为了高效管理已经被打开的文件所创建的索引。它是一个非负整数，用于指被打开的文件。所有执行I/O操作的系统调用都是通过文件描述符。 &amp;emsp;&amp;emsp;程序刚刚启动时，默认分配文件描述符0为标准输入、1为标准输出、2为标准错误。 2. 文件重定向2.1 标准输出重定向&amp;emsp;&amp;emsp;标准输出重">
-<meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2020-02-08T09:21:19.742Z">
-<meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Linux shell标准输入&#x2F;输出&#x2F;错误重定向">
-<meta name="twitter:description" content="1. 什么是文件描述符&amp;emsp;&amp;emsp;文件描述符即file descriptor，是内核为了高效管理已经被打开的文件所创建的索引。它是一个非负整数，用于指被打开的文件。所有执行I/O操作的系统调用都是通过文件描述符。 &amp;emsp;&amp;emsp;程序刚刚启动时，默认分配文件描述符0为标准输入、1为标准输出、2为标准错误。 2. 文件重定向2.1 标准输出重定向&amp;emsp;&amp;emsp;标准输出重">
-
-
-
-<script type="text/javascript" id="hexo.configurations">
-  var NexT = window.NexT || {};
-  var CONFIG = {
-    root: '/',
-    scheme: 'Pisces',
-    version: '5.1.4',
-    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
-    fancybox: true,
-    tabs: true,
-    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
-    duoshuo: {
-      userId: '0',
-      author: '博主'
-    },
-    algolia: {
-      applicationID: '',
-      apiKey: '',
-      indexName: '',
-      hits: {"per_page":10},
-      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
-    }
-  };
-</script>
-
-
-
-  <link rel="canonical" href="http://www.howar.cn/2018/07/16/input_output_error/">
-
-
-
-
-
-  <title>Linux shell标准输入/输出/错误重定向 | Howar's Blog</title>
-  
-
-
-
-
-
-
-
+	
+	<title>Linux shell标准输入/输出/错误重定向</title>
+	<meta name="keywords" content="howar.cn">
+
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+    
+	   <link href="/css/main.css?v=3" rel="stylesheet" type="text/css">
+    
+        <script src="/js/util.js"></script>
+        <script>
+            if(isMobile()) {
+                loadjscssfile('../css/mobile.css', 'css');
+            } else {
+                loadjscssfile('../css/desktop.css', 'css');
+            }
+        </script> 
+    
+
+    <link rel="alternate" type="application/atom+xml" href="/atom.xml" title="Atom feed">
+
+    
+	<link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=3">
+    
+    
 
 </head>
 
-<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+<body>
 
-  
-  
-    
-  
 
-  <div class="container sidebar-position-left page-post-detail">
-    <div class="headband"></div>
+<h2 class="title">Linux shell标准输入/输出/错误重定向</h2>
+<!---
+<div style="text-align:center;margin-top: -10px;">
+<div class="article-category">
+发表于2018年7月16日
 
-    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
-      <div class="header-inner"><div class="site-brand-wrapper">
-  <div class="site-meta ">
-    
 
-    <div class="custom-logo-site-title">
-      <a href="/" class="brand" rel="start">
-        <span class="logo-line-before"><i></i></span>
-        <span class="site-title">Howar's Blog</span>
-        <span class="logo-line-after"><i></i></span>
-      </a>
-    </div>
-      
-        <p class="site-subtitle"></p>
-      
-  </div>
-
-  <div class="site-nav-toggle">
-    <button>
-      <span class="btn-bar"></span>
-      <span class="btn-bar"></span>
-      <span class="btn-bar"></span>
-    </button>
-  </div>
-</div>
-
-<nav class="site-nav">
-  
-
-  
-    <ul id="menu" class="menu">
-      
-        
-        <li class="menu-item menu-item-home">
-          <a href="/" rel="section">
-            
-            首页
-          </a>
-        </li>
-      
-        
-        <li class="menu-item menu-item-archives">
-          <a href="/archives" rel="section">
-            
-            归档
-          </a>
-        </li>
-      
-        
-        <li class="menu-item menu-item-categories">
-          <a href="/categories" rel="section">
-            
-            分类
-          </a>
-        </li>
-      
-        
-        <li class="menu-item menu-item-tags">
-          <a href="/tags" rel="section">
-            
-            标签
-          </a>
-        </li>
-      
-        
-        <li class="menu-item menu-item-about">
-          <a href="/about" rel="section">
-            
-            关于
-          </a>
-        </li>
-      
-
-      
-    </ul>
-  
-
-  
-</nav>
+    <a class="article-category-link" href="/categories/Shell/">Shell</a>
 
 
 
  </div>
-    </header>
+--->
+</div>
 
-    <main id="main" class="main">
-      <div class="main-inner">
-        <div class="content-wrap">
-          <div id="content" class="content">
-            
-
-  <div id="posts" class="posts-expand">
-    
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://www.howar.cn/2018/07/16/input_output_error/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Howar">
-      <meta itemprop="description" content>
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Howar's Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">Linux shell标准输入/输出/错误重定向</h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-07-16T19:32:11+08:00">
-                2018-07-16
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category">
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Shell/" itemprop="url" rel="index">
-                    <span itemprop="name">Shell</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        <h2 id="1-什么是文件描述符"><a href="#1-什么是文件描述符" class="headerlink" title="1. 什么是文件描述符"></a>1. 什么是文件描述符</h2><p>&emsp;&emsp;文件描述符即file descriptor，是内核为了高效管理已经被打开的文件所创建的索引。它是一个非负整数，用于指被打开的文件。所有执行I/O操作的系统调用都是通过文件描述符。</p>
+<ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-什么是文件描述符"><span class="toc-text">1. 什么是文件描述符</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-文件重定向"><span class="toc-text">2. 文件重定向</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-标准输出重定向"><span class="toc-text">2.1 标准输出重定向</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-标准错误重定向"><span class="toc-text">2.2 标准错误重定向</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-标准输入重定向"><span class="toc-text">2.3 标准输入重定向</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-高级用法"><span class="toc-text">3. 高级用法</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-“-gt-dev-null-2-gt-amp-1”是啥意思"><span class="toc-text">3.1 “&gt;/dev/null 2&gt;&amp;1”是啥意思</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-“-gt-dev-null-2-gt-1”是啥意思"><span class="toc-text">3.2 “&gt;/dev/null 2&gt;1”是啥意思</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-“-gt-file-2-gt-file1”和“-gt-file-2-gt-amp-1”有啥区别"><span class="toc-text">3.3 “&gt;file 2&gt;file1”和“&gt;file 2&gt;&amp;1”有啥区别</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-“-gt-file-2-gt-amp-1”和“2-gt-amp-1-gt-file”有啥区别"><span class="toc-text">3.4 “&gt;file 2&gt;&amp;1”和“2&gt;&amp;1 &gt;file”有啥区别</span></a></li></ol></li></ol>
+<h2 id="1-什么是文件描述符"><a href="#1-什么是文件描述符" class="headerlink" title="1. 什么是文件描述符"></a>1. 什么是文件描述符</h2><p>&emsp;&emsp;文件描述符即file descriptor，是内核为了高效管理已经被打开的文件所创建的索引。它是一个非负整数，用于指被打开的文件。所有执行I/O操作的系统调用都是通过文件描述符。</p>
 <p>&emsp;&emsp;程序刚刚启动时，默认分配文件描述符0为标准输入、1为标准输出、2为标准错误。</p>
 <h2 id="2-文件重定向"><a href="#2-文件重定向" class="headerlink" title="2. 文件重定向"></a>2. 文件重定向</h2><h3 id="2-1-标准输出重定向"><a href="#2-1-标准输出重定向" class="headerlink" title="2.1 标准输出重定向"></a>2.1 标准输出重定向</h3><p>&emsp;&emsp;标准输出重定向，使用符号“&gt;”,它表示程序输出至文件。该符号右侧文件若存在，则清空文件中的内容，并将新的内容输入至该文件；该符号右侧文件若存在，则首先创建该文件，并将新的内容输入至该文件。</p>
 <p>&emsp;&emsp;而重定向符号“&gt;&gt;”则表示追加的意思。</p>
@@ -358,386 +64,30 @@
 <h3 id="3-4-“-gt-file-2-gt-amp-1”和“2-gt-amp-1-gt-file”有啥区别"><a href="#3-4-“-gt-file-2-gt-amp-1”和“2-gt-amp-1-gt-file”有啥区别" class="headerlink" title="3.4 “&gt;file 2&gt;&amp;1”和“2&gt;&amp;1 &gt;file”有啥区别"></a>3.4 “&gt;file 2&gt;&amp;1”和“2&gt;&amp;1 &gt;file”有啥区别</h3><p>&emsp;&emsp;如上分析，前一个命令表示：标准输入和标准错误通过同一个管道重定向到file中。</p>
 <p>&emsp;&emsp;后一个命令无法达到这种效果，应该2&gt;&amp;1是标准错误拷贝了标准输出的行为，但此时标准输出还是在终端，&gt;file后才被重定向到file，所以其标准错误最终仍然保持在终端。</p>
 
-      
-    </div>
-    
-    
-    
 
-    
+<!--<a href="http://www.howar.cn/2018/07/16/input_output_error/#disqus_thread" class="article-comment-link">Comments</a>
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+    var disqus_shortname = ''; // required: replace example with your forum shortname
 
-    
-
-    
-
-    <footer class="post-footer">
-      
-        <div class="post-tags">
-          
-            <a href="/tags/Shell/" rel="tag"># Shell</a>
-          
-        </div>
-      
-
-      
-      
-      
-
-      
-        <div class="post-nav">
-          <div class="post-nav-next post-nav-item">
-            
-          </div>
-
-          <span class="post-nav-divider"></span>
-
-          <div class="post-nav-prev post-nav-item">
-            
-              <a href="/2018/07/17/makefile/" rel="prev" title="初见Makefile">
-                初见Makefile <i class="fa fa-chevron-right"></i>
-              </a>
-            
-          </div>
-        </div>
-      
-
-      
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-
-    <div class="post-spread">
-      
-    </div>
-  </div>
-
-
-          </div>
-          
-
-
-          
-
-  
-
-
-
-        </div>
-        
-          
-  
-  <div class="sidebar-toggle">
-    <div class="sidebar-toggle-line-wrap">
-      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
-      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
-      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
-    </div>
-  </div>
-
-  <aside id="sidebar" class="sidebar">
-    
-    <div class="sidebar-inner">
-
-      
-
-      
-        <ul class="sidebar-nav motion-element">
-          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
-            文章目录
-          </li>
-          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
-            站点概览
-          </li>
-        </ul>
-      
-
-      <section class="site-overview-wrap sidebar-panel">
-        <div class="site-overview">
-          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
-            
-              <p class="site-author-name" itemprop="name">Howar</p>
-              <p class="site-description motion-element" itemprop="description"></p>
-          </div>
-
-          <nav class="site-state motion-element">
-
-            
-              <div class="site-state-item site-state-posts">
-              
-                <a href="/archives">
-              
-                  <span class="site-state-item-count">7</span>
-                  <span class="site-state-item-name">日志</span>
-                </a>
-              </div>
-            
-
-            
-              
-              
-              <div class="site-state-item site-state-categories">
-                <a href="/categories/index.html">
-                  <span class="site-state-item-count">3</span>
-                  <span class="site-state-item-name">分类</span>
-                </a>
-              </div>
-            
-
-            
-              
-              
-              <div class="site-state-item site-state-tags">
-                <a href="/tags/index.html">
-                  <span class="site-state-item-count">5</span>
-                  <span class="site-state-item-name">标签</span>
-                </a>
-              </div>
-            
-
-          </nav>
-
-          
-
-          
-
-          
-          
-
-          
-          
-
-          
-
-        </div>
-      </section>
-
-      
-      <!--noindex-->
-        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
-          <div class="post-toc">
-
-            
-              
-            
-
-            
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-什么是文件描述符"><span class="nav-number">1.</span> <span class="nav-text">1. 什么是文件描述符</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-文件重定向"><span class="nav-number">2.</span> <span class="nav-text">2. 文件重定向</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#2-1-标准输出重定向"><span class="nav-number">2.1.</span> <span class="nav-text">2.1 标准输出重定向</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-2-标准错误重定向"><span class="nav-number">2.2.</span> <span class="nav-text">2.2 标准错误重定向</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-3-标准输入重定向"><span class="nav-number">2.3.</span> <span class="nav-text">2.3 标准输入重定向</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-高级用法"><span class="nav-number">3.</span> <span class="nav-text">3. 高级用法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-1-“-gt-dev-null-2-gt-amp-1”是啥意思"><span class="nav-number">3.1.</span> <span class="nav-text">3.1 “&gt;/dev/null 2&gt;&amp;1”是啥意思</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-2-“-gt-dev-null-2-gt-1”是啥意思"><span class="nav-number">3.2.</span> <span class="nav-text">3.2 “&gt;/dev/null 2&gt;1”是啥意思</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-3-“-gt-file-2-gt-file1”和“-gt-file-2-gt-amp-1”有啥区别"><span class="nav-number">3.3.</span> <span class="nav-text">3.3 “&gt;file 2&gt;file1”和“&gt;file 2&gt;&amp;1”有啥区别</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-4-“-gt-file-2-gt-amp-1”和“2-gt-amp-1-gt-file”有啥区别"><span class="nav-number">3.4.</span> <span class="nav-text">3.4 “&gt;file 2&gt;&amp;1”和“2&gt;&amp;1 &gt;file”有啥区别</span></a></li></ol></li></ol></div>
-            
-
-          </div>
-        </section>
-      <!--/noindex-->
-      
-
-      
-
-    </div>
-  </aside>
-
-
-        
-      </div>
-    </main>
-
-    <footer id="footer" class="footer">
-      <div class="footer-inner">
-        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
-  <span class="with-love">
-    <i class="fa fa-user"></i>
-  </span>
-  <span class="author" itemprop="copyrightHolder">Howar</span>
-
-  
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+-->
+<div style="display:none">
+<script src="http://s4.cnzz.com/stat.php?id=&web_id=" language="JavaScript"></script>script>
 </div>
 
 
-  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
 
 
 
-  <span class="post-meta-divider">|</span>
-
-
-
-  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a> v5.1.4</div>
-
-
-
-
-        
-
-
-
-
-
-
-
-        
-      </div>
-    </footer>
-
-    
-      <div class="back-to-top">
-        <i class="fa fa-arrow-up"></i>
-        
-      </div>
-    
-
-    
-
-  </div>
-
-  
-
-<script type="text/javascript">
-  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
-    window.Promise = null;
-  }
-</script>
-
-
-
-
-
-
-
-
-
-  
-
-
-
-
-
-
-
-
-
-
-
-
-  
-  
-    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
-  
-
-  
-  
-    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
-  
-
-  
-  
-    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
-  
-
-  
-  
-    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
-  
-
-  
-  
-    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
-  
-
-  
-  
-    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
-  
-
-
-  
-
-
-  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
-
-  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
-
-
-
-  
-  
-
-
-  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
-
-  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
-
-
-
-  
-  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
-<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
-
-
-
-  
-
-
-  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
-
-
-
-  
-
-
-  
-
-
-
-
-	
-
-
-
-
-
-  
-
-
-
-
-
-  
-
-
-
-
-
-
-
-
-
-
-
-
-  
-
-
-
-
-
-  
-
-  
-
-  
-
-  
-  
-
-  
-
-  
-
-  
 
 </body>
 </html>
