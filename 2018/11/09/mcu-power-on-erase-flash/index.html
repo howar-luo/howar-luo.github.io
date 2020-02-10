@@ -1,0 +1,93 @@
+<html>
+<head><meta name="generator" content="Hexo 3.9.0">
+	
+	<title>单片机重启时可能发生的异常 ---- flash被异常改写</title>
+	<meta name="keywords" content="howar.cn">
+
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+    
+	   <link href="/css/main.css?v=3" rel="stylesheet" type="text/css">
+    
+        <script src="/js/util.js"></script>
+        <script>
+            if(isMobile()) {
+                loadjscssfile('../css/mobile.css', 'css');
+            } else {
+                loadjscssfile('../css/desktop.css', 'css');
+            }
+        </script> 
+    
+
+    <link rel="alternate" type="application/atom+xml" href="/atom.xml" title="Atom feed">
+
+    
+	<link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=3">
+    
+    
+
+</head>
+
+<body>
+
+
+<h2 class="title">单片机重启时可能发生的异常 ---- flash被异常改写</h2>
+<!---
+<div style="text-align:center;margin-top: -10px;">
+<div class="article-category">
+发表于2018年11月9日
+
+
+
+
+ </div>
+--->
+</div>
+
+<ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#背景"><span class="toc-text">背景</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#问题定位"><span class="toc-text">问题定位</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#上下电电源波形异常验证"><span class="toc-text">上下电电源波形异常验证</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Flash异常操作验证"><span class="toc-text">Flash异常操作验证</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#解决措施"><span class="toc-text">解决措施</span></a></li></ol></li></ol>
+<h3 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h3><p>STM32F215RG MCU在多次断电重启的场景中，概率性出现无法启动的现象。</p>
+<h3 id="问题定位"><a href="#问题定位" class="headerlink" title="问题定位"></a>问题定位</h3><p>重新线刷MCU完整固件，现象消失。</p>
+<p>通过jlink读出芯片整片flash二进制文件进行分析，发现出现无法启动的问题时，从0x08000000地址开始的48Bytes或者64Bytes被异常清0，由于该区域存放中断向量表，从而导致芯片启动时找不到对应的复位中断向量而无法正常启动。</p>
+<h4 id="上下电电源波形异常验证"><a href="#上下电电源波形异常验证" class="headerlink" title="上下电电源波形异常验证"></a>上下电电源波形异常验证</h4><p>由于这种情况只出现在MCU断电重启的场景，因此怀疑跟上下电电压波形有关，因为STM32F215RG单片机内核工作电压范围为1.8v-3.6v，而电压低至1.8v附近时，flash及其他外设很有可能无法正常工作，如果该情况持续时间较长，可能会引起芯片内部逻辑信号紊乱，导致程序跑飞及flash异常改写的情况。</p>
+<p>为验证上述猜想，分别拿容易复现问题的控制板和正常的控制板量取下电电压波形如下：<br><img src="/images/mcu-power-on-erase-flash/fault-vol.png" alt><br><img src="/images/mcu-power-on-erase-flash/normal-vol.png" alt><br>从上述波形可以看出，异常MCU下电时，电压降的较缓(从2.4v降到1.8v需要13ms左右)，从而可能出现CM3核在工作，flash及其他外设无法正常工作的场景，从而可能出现芯片内部逻辑信号异常的情况。</p>
+<p>至此，猜测具体原因可能有两个：</p>
+<ol>
+<li>在电源异常的情况下，芯片可能有自保护策略，由自身硬件逻辑清除掉相应flash，从而导致芯片无法启动；</li>
+<li>在电源异常的情况下，由于芯片内部逻辑信号异常，导致程序跑飞，由程序中flash驱动擦出相应flash，从而导致芯片无法启动。</li>
+</ol>
+<p>遗憾的是，第一种猜想在相关官方手册中没有找到明确的证据。针对第二种猜想，继续做以下实验。</p>
+<h4 id="Flash异常操作验证"><a href="#Flash异常操作验证" class="headerlink" title="Flash异常操作验证"></a>Flash异常操作验证</h4><p>由于固件中有操作flash的代码：擦(FLASH_Erase_Sector)和写(HAL_FLASH_Program)。<br>在遵守尽量用相同二进制文件的原则下，做以下试验。<br>通过反汇编，分别找到擦和写flash函数对应的地址和二进制内容，并将其清掉。<br>写(HAL_FLASH_Program)函数二进制范围为0x080433a8-0x0804341c，将其清除，如下图：<br><img src="/images/mcu-power-on-erase-flash/disable-flash-write.png" alt><br>多次实验结果发现，MCU无法启动的问题依然存在。</p>
+<p>擦(FLASH_Erase_Sector)函数二进制范围为0x08041780-0x080417d4，将其清除，如下图：<br><img src="/images/mcu-power-on-erase-flash/disable-flash-erase.png" alt><br>多次实验结果发现，系统无法启动的问题消失。说明MCU在上下电的时候可能出现程序跑飞最终执行该函数。</p>
+<p>进一步实验，来验证程序是直接跑飞到该函数，还是跑飞到调用到该函数的地方。<br>调用FLASH_Erase_Sector的函数为HAL_FLASHEx_Erase_IT，通过反汇编，找到FLASH_Erase_Sector被调用的机器码，将其清掉，如下图：<br><img src="/images/mcu-power-on-erase-flash/disable-flash-erase-called.png" alt><br>多次实验结果发现，MCU无法启动的问题消失。说明有可能FLASH_Erase_Sector的执行是通过HAL_FLASHEx_Erase_IT的调用完成的。</p>
+<p>通过上述相同的方法，继续向上查找，通过多次实验，发现最顶层的调用点在Internal_Erase_Flash_Bank调用HAL_FLASHEx_Erase_IT的地方，即清掉Internal_Erase_Flash_Bank调用HAL_FLASHEx_Erase_IT的机器码，问题消失。</p>
+<p>从上述实验现象可以推测，MCU在上下电时，程序跑飞到HAL_FLASHEx_Erase_IT到FLASH_Erase_Sector的调用链上，导致flash异常，向量表被清除。</p>
+<h4 id="解决措施"><a href="#解决措施" class="headerlink" title="解决措施"></a>解决措施</h4><p>基于上述推测及实验，单片机在上下电过程中可能出现PC指针跑飞，为避免这种情况的发生，可以考虑提高单片机复位电压，即在上下电过程中，只让单片机内核及外设在较稳定的电压范围内工作，否则就让其处于复位状态。<br>STM32F215RG芯片支持BOR(brown-out reset)，且支持修改BOR reset Level，如下图所示：<br><img src="/images/mcu-power-on-erase-flash/BOR-reset-level.png" alt><br>本项目中，将BOR reset Level设置为Level2，即当电压下降到2.4v以下，就将CM3核拉至复位状态。<br>开启该功能后，用同样的二进制文件，经过上千次的实验，问题不复现。</p>
+
+
+<!--<a href="http://www.howar.cn/2018/11/09/mcu-power-on-erase-flash/#disqus_thread" class="article-comment-link">Comments</a>
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+    var disqus_shortname = ''; // required: replace example with your forum shortname
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+-->
+<div style="display:none">
+<script src="http://s4.cnzz.com/stat.php?id=&web_id=" language="JavaScript"></script>script>
+</div>
+
+
+
+
+
+
+</body>
+</html>
