@@ -72,19 +72,19 @@ ga('send', 'pageview');
 <p>linux平台采用ELF(Executable and Linkable Format)作为其目标文件格式。ELF中所包含的内容如下表所示：</p>
 <table align="center">
    <tr>
-        <th align="center">Executable File/Object File</th>
+        <th align="center"> Executable File/Object File </th>
    </tr>
    <tr>
         <td align="center"> File Header </td>
    </tr>
    <tr>
-        <td align="center">.text section</td>
+        <td align="center"> .text section </td>
    </tr>
    <tr>
-        <td align="center">.data section</td>
+        <td align="center"> .data section </td>
    </tr>
    <tr>
-        <td align="center">.bss section</td>
+        <td align="center"> .bss section </td>
    </tr>
 </table>
 通过上表可以看到，ELF文件除了一些section(segment)信息之外，还有一个很重要的组成部分：文件头。使用readelf可以查看一个ELF文件文件头的信息。如下为variable.c文件通过gcc编译得到的a.out的文件头信息：
