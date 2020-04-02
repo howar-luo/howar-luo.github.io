@@ -69,7 +69,7 @@ ga('send', 'pageview');
 
 <p>实际上上述过程可以分解为4个步骤：预处理、编译、汇编、链接。最终生成可执行文件（elf格式）。</p>
 <h3 id="ELF文件结构"><a href="#ELF文件结构" class="headerlink" title="ELF文件结构"></a>ELF文件结构</h3><p>目标文件中的内容至少有编译后的机器指令代码、数据。除了这些内容以外，目标文件中还包括链接时所需要的一些信息，比如符号表、调试信息等。一般目标文件将这些信息按照不同的属性，以section的形式存储，有时也叫做segment。</p>
-<p>linux平台采用ELF(Executable and Linkable Format)作为其目标文件格式。ELF中所包含的内容如下表所示：<br>|Executable File/Object File|<br>|:——————————:|<br>|File Header|<br>|.text section|<br>|.data section|<br>|.bss section|<br>通过上表可以看到，ELF文件除了一些section(segment)信息之外，还有一个很重要的组成部分：文件头。使用readelf可以查看一个ELF文件文件头的信息。如下为variable.c文件通过gcc编译得到的a.out的文件头信息：<br><img src="/images/the-whole-life-of-a-variable/file-header.png" width="400" height="300" align="center"></p>
+<p>linux平台采用ELF(Executable and Linkable Format)作为其目标文件格式。ELF中所包含的内容如下表所示：<br>|Executable File/Object File|<br>|:——————————:|<br>|File Header|<br>|.text section|<br>|.data section|<br>|.bss section|<br>通过上表可以看到，ELF文件除了一些section(segment)信息之外，还有一个很重要的组成部分：文件头。使用readelf可以查看一个ELF文件文件头的信息。如下为variable.c文件通过gcc编译得到的a.out的文件头信息：<br><img src="/images/the-whole-life-of-a-variable/file-header.png" width="600" height="400" align="center"></p>
 <p>一般C语言编译后执行语句都编译成机器代码，保存在.text段；已初始化的全局变量和局部静态变量都保存在.data段；未初始化的全局变量和局部静态变量一般放在一个叫“.bss”的段里。我们知道未初始化的全局变量和局部静态变量默认值都为0，本来他们也可以被放在.data段的，但是因为它们都是0，所以为它们在.data段分配空间并且存放数据0是没有必要的。</p>
 <p>在上述代码中，变量variable会存储在.data段中。</p>
 <p>真实的ELF文件所包含的内容要比上表中列出来的丰富的多，可以通过readelf -S a.out来查看。</p>
@@ -77,7 +77,7 @@ ga('send', 'pageview');
 <p>进程则是一个动态的概念，它是程序运行时的一个过程。</p>
 <p>程序被装载进内存，然后运行，会伴随进程的创建。</p>
 <h4 id="以页映射的方式进行装载"><a href="#以页映射的方式进行装载" class="headerlink" title="以页映射的方式进行装载"></a>以页映射的方式进行装载</h4><p>程序执行时所需要的指令和数据必须在内存中才能够正常运行。Linux操作系统采用页映射的方式对可执行程序进行装载。</p>
-<p>页映射将内存和所有磁盘中的数据和指令按照“页”为单位划分成若干个页。假设可执行程序所有的指令和数据总共为32KB，每个页大小为4KB，那么程序总共被分为8个页，将其编号为P0～P7。同时假设物理内存大小为16KB，被分为4个页，将其编号为F0～F3。如果程序刚开始执行时的入口地址在P0，这时操作系统发现程序的P0不在内存中，于是将内存F0分配给P0（发生pagefault），并且将P0的内容装入F0；运行一段时间后，程序需要用到P5，于是操作系统将P5装入F1；就这样，当程序用到P3和P6的时候，它们分别被装入了F2和F3，如下图所示。<br><img src="/images/the-whole-life-of-a-variable/page-mapping.png" width="400" height="300" align="center"><br>如果程序接下来往下执行，需要访问P4，则操作系统需要作出抉择，必须放弃目前正在使用的4个内存页中的其中一个来装载P4。这种选择的算法有很多中，最常用的一种算法为LUR（least recently used）。</p>
+<p>页映射将内存和所有磁盘中的数据和指令按照“页”为单位划分成若干个页。假设可执行程序所有的指令和数据总共为32KB，每个页大小为4KB，那么程序总共被分为8个页，将其编号为P0～P7。同时假设物理内存大小为16KB，被分为4个页，将其编号为F0～F3。如果程序刚开始执行时的入口地址在P0，这时操作系统发现程序的P0不在内存中，于是将内存F0分配给P0（发生pagefault），并且将P0的内容装入F0；运行一段时间后，程序需要用到P5，于是操作系统将P5装入F1；就这样，当程序用到P3和P6的时候，它们分别被装入了F2和F3，如下图所示。<br><img src="/images/the-whole-life-of-a-variable/page-mapping.png" width="600" height="400" align="center"><br>如果程序接下来往下执行，需要访问P4，则操作系统需要作出抉择，必须放弃目前正在使用的4个内存页中的其中一个来装载P4。这种选择的算法有很多中，最常用的一种算法为LUR（least recently used）。</p>
 <h4 id="从操作系统角度看可执行文件的装载"><a href="#从操作系统角度看可执行文件的装载" class="headerlink" title="从操作系统角度看可执行文件的装载"></a>从操作系统角度看可执行文件的装载</h4><p>上面有提到，通常情况下，一个程序被执行同时都伴随着一个新的进程的创建。在这个过程中，需要做三件事情：</p>
 <ol>
 <li>创建一个独立的虚拟地址空间</li>
@@ -87,7 +87,7 @@ ga('send', 'pageview');
 <li>读取可执行文件头，并建立虚拟空间与可执行文件的映射关系</li>
 </ol>
 <p>首先要清楚：上一步的页映射关系函数是虚拟空间到物理内存的映射关系，而这一步所做的是虚拟空间与可执行文件的映射关系。<br><br>我们知道，当程序执行发生页错误时，操作系统将从物理内存中分配一个物理页，然后将该“缺页”从磁盘中读取到内存中，再设置缺页的虚拟页和物理页的映射关系，这样程序才得以正常运行。<br><br>那么问题来了，当OS捕获到缺页错误时，它应当知道程序当前所需要的页在可执行文件中的哪个位置，这就是虚拟地址空间与可执行文件之间的映射关系。</p>
-<p>这里将问题简化，以上面的程序为例，通过readelf工具查看变量variable所在的section(.data)的信息如下：<br><img src="/images/the-whole-life-of-a-variable/section-info.png" width="400" height="300" align="center"><br>即它的起始虚拟地址为0x0804a014，大小为0x00000c，考虑到操作系统在实际的处理中会将section合并对齐等操作，我们假设其所在的合并后的section起始虚拟地址地址为0x0804a000，对齐为0x1000，那么可以画出可执行文件与执行该可执行文件进程的虚拟空间之间的映射关系如下：<br><img src="/images/the-whole-life-of-a-variable/file-process-mapping.png" width="400" height="300" align="center"><br>这里会引出一个很重要的概念：虚拟内存区域（VMA，Virtual Memory Area）。在上述例子中，操作系统创建进程后，会在进程相应的数据结构中设置一个.data段的VMA：它在虚拟空间中的地址为0x0804a000～0x0804b000，它对应ELF文件中的.data，它的属性为可读可写，还有一些其他的属性。</p>
+<p>这里将问题简化，以上面的程序为例，通过readelf工具查看变量variable所在的section(.data)的信息如下：<br><img src="/images/the-whole-life-of-a-variable/section-info.png" width="600" height="400" align="center"><br>即它的起始虚拟地址为0x0804a014，大小为0x00000c，考虑到操作系统在实际的处理中会将section合并对齐等操作，我们假设其所在的合并后的section起始虚拟地址地址为0x0804a000，对齐为0x1000，那么可以画出可执行文件与执行该可执行文件进程的虚拟空间之间的映射关系如下：<br><img src="/images/the-whole-life-of-a-variable/file-process-mapping.png" width="600" height="400" align="center"><br>这里会引出一个很重要的概念：虚拟内存区域（VMA，Virtual Memory Area）。在上述例子中，操作系统创建进程后，会在进程相应的数据结构中设置一个.data段的VMA：它在虚拟空间中的地址为0x0804a000～0x0804b000，它对应ELF文件中的.data，它的属性为可读可写，还有一些其他的属性。</p>
 <ol start="3">
 <li>将CPU指令寄存器设置成可执行文件人口，启动运行</li>
 </ol>
