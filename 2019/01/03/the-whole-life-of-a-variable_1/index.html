@@ -69,7 +69,7 @@ ga('send', 'pageview');
 
 <p>实际上上述过程可以分解为4个步骤：预处理、编译、汇编、链接。最终生成可执行文件（elf格式）。</p>
 <h3 id="ELF文件结构"><a href="#ELF文件结构" class="headerlink" title="ELF文件结构"></a>ELF文件结构</h3><p>目标文件中的内容至少有编译后的机器指令代码、数据。除了这些内容以外，目标文件中还包括链接时所需要的一些信息，比如符号表、调试信息等。一般目标文件将这些信息按照不同的属性，以section的形式存储，有时也叫做segment。</p>
-<p>linux平台采用ELF(Executable and Linkable Format)作为其目标文件格式。ELF中所包含的内容如下表所示：<br>|Executable File/Object File|<br>|:——————————:|<br>|File Header|<br>|.text section|<br>|.data section|<br>|.bss section|<br>通过上表可以看到，ELF文件除了一些section(segment)信息之外，还有一个很重要的组成部分：文件头。使用readelf可以查看一个ELF文件文件头的信息。如下为variable.c文件通过gcc编译得到的a.out的文件头信息：<br><img src="/images/the-whole-life-of-a-variable/file-header.png" width="100" height="100" alt="file-header" align="center"></p>
+<p>linux平台采用ELF(Executable and Linkable Format)作为其目标文件格式。ELF中所包含的内容如下表所示：<br>|Executable File/Object File|<br>|:——————————:|<br>|File Header|<br>|.text section|<br>|.data section|<br>|.bss section|<br>通过上表可以看到，ELF文件除了一些section(segment)信息之外，还有一个很重要的组成部分：文件头。使用readelf可以查看一个ELF文件文件头的信息。如下为variable.c文件通过gcc编译得到的a.out的文件头信息：<br><img src="/images/the-whole-life-of-a-variable/file-header.png" width="60%" align="center"></p>
 <p>一般C语言编译后执行语句都编译成机器代码，保存在.text段；已初始化的全局变量和局部静态变量都保存在.data段；未初始化的全局变量和局部静态变量一般放在一个叫“.bss”的段里。我们知道未初始化的全局变量和局部静态变量默认值都为0，本来他们也可以被放在.data段的，但是因为它们都是0，所以为它们在.data段分配空间并且存放数据0是没有必要的。</p>
 <p>在上述代码中，变量variable会存储在.data段中。</p>
 <p>真实的ELF文件所包含的内容要比上表中列出来的丰富的多，可以通过readelf -S a.out来查看。</p>
