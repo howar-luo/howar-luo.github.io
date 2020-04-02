@@ -1,0 +1,124 @@
+<html>
+<head><meta name="generator" content="Hexo 3.9.0">
+	
+	<title>一个变量的一生(上)</title>
+	<meta name="keywords" content="howar.cn">
+
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+    
+	   <link href="/css/main.css?v=3" rel="stylesheet" type="text/css">
+    
+        <script src="/js/util.js"></script>
+        <script>
+            if(isMobile()) {
+                loadjscssfile('../css/mobile.css', 'css');
+            } else {
+                loadjscssfile('../css/desktop.css', 'css');
+            }
+        </script> 
+    
+
+    <link rel="alternate" type="application/atom+xml" href="/atom.xml" title="Atom feed">
+
+    
+	<link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=3">
+    
+    
+<!-- Google Analytics -->
+<script type="text/javascript">
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+ga('create', 'UA-159646423-1', 'auto');
+ga('send', 'pageview');
+
+</script>
+<!-- End Google Analytics -->
+
+
+</head>
+
+<body>
+
+
+<h2 class="title">一个变量的一生(上)</h2>
+<!---
+<div style="text-align:center;margin-top: -10px;">
+<div class="article-category">
+发表于2019年1月3日
+
+
+
+
+ </div>
+--->
+</div>
+
+<ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#前言"><span class="toc-text">前言</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#编译与链接"><span class="toc-text">编译与链接</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#ELF文件结构"><span class="toc-text">ELF文件结构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#ELF文件在linux下的装载过程"><span class="toc-text">ELF文件在linux下的装载过程</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#程序和进程有什么区别"><span class="toc-text">程序和进程有什么区别</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#以页映射的方式进行装载"><span class="toc-text">以页映射的方式进行装载</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#从操作系统角度看可执行文件的装载"><span class="toc-text">从操作系统角度看可执行文件的装载</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Page-Fault"><span class="toc-text">Page Fault</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#小结"><span class="toc-text">小结</span></a></li></ol></li></ol>
+<h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>本文试图分析一个变量从编码到最终运行被访问的生命周期。主要分两个部分：从编码到载入内存、在内存中被访问的机制。</p>
+<p>本文的范畴为linux下的C/C++。</p>
+<h3 id="编译与链接"><a href="#编译与链接" class="headerlink" title="编译与链接"></a>编译与链接</h3><p>首先假设编写的代码如下，存储在variable.c文件中：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">#include &lt;stdio.h&gt;</span><br><span class="line"></span><br><span class="line">int variable = 100;</span><br><span class="line">int main(void) &#123;</span><br><span class="line">    printf(&quot;This is variable example, variable=%d\n&quot;, variable[0]);</span><br><span class="line">    return 0;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在linux下使用gcc来编译上述代码如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gcc variable.c</span><br></pre></td></tr></table></figure>
+
+<p>实际上上述过程可以分解为4个步骤：预处理、编译、汇编、链接。最终生成可执行文件（elf格式）。</p>
+<h3 id="ELF文件结构"><a href="#ELF文件结构" class="headerlink" title="ELF文件结构"></a>ELF文件结构</h3><p>目标文件中的内容至少有编译后的机器指令代码、数据。除了这些内容以外，目标文件中还包括链接时所需要的一些信息，比如符号表、调试信息等。一般目标文件将这些信息按照不同的属性，以section的形式存储，有时也叫做segment。</p>
+<p>linux平台采用ELF(Executable and Linkable Format)作为其目标文件格式。ELF中所包含的内容如下表所示：<br>|Executable File/Object File|<br>|:——————————:|<br>|File Header|<br>|.text section|<br>|.data section|<br>|.bss section|<br>通过上表可以看到，ELF文件除了一些section(segment)信息之外，还有一个很重要的组成部分：文件头。使用readelf可以查看一个ELF文件文件头的信息。如下为variable.c文件通过gcc编译得到的a.out的文件头信息：<br><img src="/images/the-whole-life-of-a-variable/file-header.png" alt></p>
+<p>一般C语言编译后执行语句都编译成机器代码，保存在.text段；已初始化的全局变量和局部静态变量都保存在.data段；未初始化的全局变量和局部静态变量一般放在一个叫“.bss”的段里。我们知道未初始化的全局变量和局部静态变量默认值都为0，本来他们也可以被放在.data段的，但是因为它们都是0，所以为它们在.data段分配空间并且存放数据0是没有必要的。</p>
+<p>在上述代码中，变量variable会存储在.data段中。</p>
+<p>真实的ELF文件所包含的内容要比上表中列出来的丰富的多，可以通过readelf -S a.out来查看。</p>
+<h3 id="ELF文件在linux下的装载过程"><a href="#ELF文件在linux下的装载过程" class="headerlink" title="ELF文件在linux下的装载过程"></a>ELF文件在linux下的装载过程</h3><h4 id="程序和进程有什么区别"><a href="#程序和进程有什么区别" class="headerlink" title="程序和进程有什么区别"></a>程序和进程有什么区别</h4><p>程序（或者狭义上讲可执行文件）是一个静态的概念，它就是一些预先编译好的指令和数据集合的一个文件。</p>
+<p>进程则是一个动态的概念，它是程序运行时的一个过程。</p>
+<p>程序被装载进内存，然后运行，会伴随进程的创建。</p>
+<h4 id="以页映射的方式进行装载"><a href="#以页映射的方式进行装载" class="headerlink" title="以页映射的方式进行装载"></a>以页映射的方式进行装载</h4><p>程序执行时所需要的指令和数据必须在内存中才能够正常运行。Linux操作系统采用页映射的方式对可执行程序进行装载。</p>
+<p>页映射将内存和所有磁盘中的数据和指令按照“页”为单位划分成若干个页。假设可执行程序所有的指令和数据总共为32KB，每个页大小为4KB，那么程序总共被分为8个页，将其编号为P0～P7。同时假设物理内存大小为16KB，被分为4个页，将其编号为F0～F3。如果程序刚开始执行时的入口地址在P0，这时操作系统发现程序的P0不在内存中，于是将内存F0分配给P0（发生pagefault），并且将P0的内容装入F0；运行一段时间后，程序需要用到P5，于是操作系统将P5装入F1；就这样，当程序用到P3和P6的时候，它们分别被装入了F2和F3，如下图所示。<br><img src="/images/the-whole-life-of-a-variable/page-mapping.png" alt><br>如果程序接下来往下执行，需要访问P4，则操作系统需要作出抉择，必须放弃目前正在使用的4个内存页中的其中一个来装载P4。这种选择的算法有很多中，最常用的一种算法为LUR（least recently used）。</p>
+<h4 id="从操作系统角度看可执行文件的装载"><a href="#从操作系统角度看可执行文件的装载" class="headerlink" title="从操作系统角度看可执行文件的装载"></a>从操作系统角度看可执行文件的装载</h4><p>上面有提到，通常情况下，一个程序被执行同时都伴随着一个新的进程的创建。在这个过程中，需要做三件事情：</p>
+<ol>
+<li>创建一个独立的虚拟地址空间</li>
+</ol>
+<p>创建一个虚拟空间实际上并不是创建空间而是创建映射函数所需要的对应的数据结构，在Linux下创建虚拟地址空间实际上只是分配一个页目录就可以了，甚至不设置页映射关系，这些映射关系等到后面程序发生页错误的时候再进行设置。</p>
+<ol start="2">
+<li>读取可执行文件头，并建立虚拟空间与可执行文件的映射关系</li>
+</ol>
+<p>首先要清楚：上一步的页映射关系函数是虚拟空间到物理内存的映射关系，而这一步所做的是虚拟空间与可执行文件的映射关系。<br><br>我们知道，当程序执行发生页错误时，操作系统将从物理内存中分配一个物理页，然后将该“缺页”从磁盘中读取到内存中，再设置缺页的虚拟页和物理页的映射关系，这样程序才得以正常运行。<br><br>那么问题来了，当OS捕获到缺页错误时，它应当知道程序当前所需要的页在可执行文件中的哪个位置，这就是虚拟地址空间与可执行文件之间的映射关系。</p>
+<p>这里将问题简化，以上面的程序为例，通过readelf工具查看变量variable所在的section(.data)的信息如下：<br><img src="/images/the-whole-life-of-a-variable/section-info.png" alt><br>即它的起始虚拟地址为0x0804a014，大小为0x00000c，考虑到操作系统在实际的处理中会将section合并对齐等操作，我们假设其所在的合并后的section起始虚拟地址地址为0x0804a000，对齐为0x1000，那么可以画出可执行文件与执行该可执行文件进程的虚拟空间之间的映射关系如下：<br><img src="/images/the-whole-life-of-a-variable/file-process-mapping.png" alt><br>这里会引出一个很重要的概念：虚拟内存区域（VMA，Virtual Memory Area）。在上述例子中，操作系统创建进程后，会在进程相应的数据结构中设置一个.data段的VMA：它在虚拟空间中的地址为0x0804a000～0x0804b000，它对应ELF文件中的.data，它的属性为可读可写，还有一些其他的属性。</p>
+<ol start="3">
+<li>将CPU指令寄存器设置成可执行文件人口，启动运行</li>
+</ol>
+<p>这一步操作系统通过设置CPU的指令寄存器将控制权转交给进程，由此进程开始执行。</p>
+<h4 id="Page-Fault"><a href="#Page-Fault" class="headerlink" title="Page Fault"></a>Page Fault</h4><p>上面的步骤执行完以后，其实可执行文件的真正的指令和数据都没有被装入到内存中。OS只是通过可执行文件头部的信息建立起可执行文件和进程虚拟内存之间的映射关系而已。当CPU打算执行指令，由于其对应的虚拟内存是个空页面，于是它就认为这是一个Page Fault。此时CPU将控制权交给操作系统，操作系统有专门的页错误处理例程来处理这种情况。这时候上面提到的装载过程的第二步建立的数据结构起到了很关键的作用，操作系统将查询这个数据结构，然后找到空页面所在的VMA，计算出相应的页面在可执行文件中的偏移，然后在物理内存中分配一个物理页面，将进程中该虚拟页与分配的物理页之间建立映射关系，然后把控制权再换回给进程，进程从刚才页错误的位置重新开始执行。</p>
+<h4 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h4><p>通过上面的过程，当CPU访问变量variable时，该变量可以被正确加载到内存相应的位置，并且建立虚拟地址与物理内存间的映射关系。下一篇将重点分析CPU访问变量variable的过程。</p>
+
+
+<!--<a href="http://www.howar.cn/2019/01/03/the-whole-life-of-a-variable_1/#disqus_thread" class="article-comment-link">Comments</a>
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+    var disqus_shortname = ''; // required: replace example with your forum shortname
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+-->
+<div style="display:none">
+<script src="http://s4.cnzz.com/stat.php?id=&web_id=" language="JavaScript"></script>script>
+</div>
+
+
+
+
+
+
+</body>
+</html>
