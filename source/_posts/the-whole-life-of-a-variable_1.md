@@ -16,7 +16,7 @@ tags:
 
 int variable = 100;
 int main(void) {
-    printf("This is variable example, variable=%d\n", variable[0]);
+    printf("This is variable example, variable=%d\n", variable);
     return 0;
 }
 ```
@@ -69,7 +69,7 @@ linux平台采用ELF(Executable and Linkable Format)作为其目标文件格式�
 
 页映射将内存和所有磁盘中的数据和指令按照“页”为单位划分成若干个页。假设可执行程序所有的指令和数据总共为32KB，每个页大小为4KB，那么程序总共被分为8个页，将其编号为P0～P7。同时假设物理内存大小为16KB，被分为4个页，将其编号为F0～F3。如果程序刚开始执行时的入口地址在P0，这时操作系统发现程序的P0不在内存中，于是将内存F0分配给P0（发生pagefault），并且将P0的内容装入F0；运行一段时间后，程序需要用到P5，于是操作系统将P5装入F1；就这样，当程序用到P3和P6的时候，它们分别被装入了F2和F3，如下图所示。
 <img src="/images/the-whole-life-of-a-variable/page-mapping.png" width="600" height="400" align=center>
-如果程序接下来往下执行，需要访问P4，则操作系统需要作出抉择，必须放弃目前正在使用的4个内存页中的其中一个来装载P4。这种选择的算法有很多中，最常用的一种算法为LUR（least recently used）。
+如果程序接下来往下执行，需要访问P4，则操作系统需要作出抉择，必须放弃目前正在使用的4个内存页中的其中一个来装载P4。这种选择的算法有很多中，最常用的一种算法为LRU（least recently used）。
 
 #### 从操作系统角度看可执行文件的装载
 上面有提到，通常情况下，一个程序被执行同时都伴随着一个新的进程的创建。在这个过程中，需要做三件事情：
