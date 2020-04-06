@@ -62,7 +62,7 @@ ga('send', 'pageview');
 <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>本文试图分析一个变量从编码到最终运行被访问的生命周期。主要分两个部分：从编码到载入内存、在内存中被访问的机制。</p>
 <p>本文的范畴为linux下的C/C++。</p>
 <h3 id="编译与链接"><a href="#编译与链接" class="headerlink" title="编译与链接"></a>编译与链接</h3><p>首先假设编写的代码如下，存储在variable.c文件中：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">#include &lt;stdio.h&gt;</span><br><span class="line"></span><br><span class="line">int variable = 100;</span><br><span class="line">int main(void) &#123;</span><br><span class="line">    printf(&quot;This is variable example, variable=%d\n&quot;, variable[0]);</span><br><span class="line">    return 0;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">#include &lt;stdio.h&gt;</span><br><span class="line"></span><br><span class="line">int variable = 100;</span><br><span class="line">int main(void) &#123;</span><br><span class="line">    printf(&quot;This is variable example, variable=%d\n&quot;, variable);</span><br><span class="line">    return 0;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>在linux下使用gcc来编译上述代码如下：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gcc variable.c</span><br></pre></td></tr></table></figure>
@@ -97,7 +97,7 @@ ga('send', 'pageview');
 <p>进程则是一个动态的概念，它是程序运行时的一个过程。</p>
 <p>程序被装载进内存，然后运行，会伴随进程的创建。</p>
 <h4 id="以页映射的方式进行装载"><a href="#以页映射的方式进行装载" class="headerlink" title="以页映射的方式进行装载"></a>以页映射的方式进行装载</h4><p>程序执行时所需要的指令和数据必须在内存中才能够正常运行。Linux操作系统采用页映射的方式对可执行程序进行装载。</p>
-<p>页映射将内存和所有磁盘中的数据和指令按照“页”为单位划分成若干个页。假设可执行程序所有的指令和数据总共为32KB，每个页大小为4KB，那么程序总共被分为8个页，将其编号为P0～P7。同时假设物理内存大小为16KB，被分为4个页，将其编号为F0～F3。如果程序刚开始执行时的入口地址在P0，这时操作系统发现程序的P0不在内存中，于是将内存F0分配给P0（发生pagefault），并且将P0的内容装入F0；运行一段时间后，程序需要用到P5，于是操作系统将P5装入F1；就这样，当程序用到P3和P6的时候，它们分别被装入了F2和F3，如下图所示。<br><img src="/images/the-whole-life-of-a-variable/page-mapping.png" width="600" height="400" align="center"><br>如果程序接下来往下执行，需要访问P4，则操作系统需要作出抉择，必须放弃目前正在使用的4个内存页中的其中一个来装载P4。这种选择的算法有很多中，最常用的一种算法为LUR（least recently used）。</p>
+<p>页映射将内存和所有磁盘中的数据和指令按照“页”为单位划分成若干个页。假设可执行程序所有的指令和数据总共为32KB，每个页大小为4KB，那么程序总共被分为8个页，将其编号为P0～P7。同时假设物理内存大小为16KB，被分为4个页，将其编号为F0～F3。如果程序刚开始执行时的入口地址在P0，这时操作系统发现程序的P0不在内存中，于是将内存F0分配给P0（发生pagefault），并且将P0的内容装入F0；运行一段时间后，程序需要用到P5，于是操作系统将P5装入F1；就这样，当程序用到P3和P6的时候，它们分别被装入了F2和F3，如下图所示。<br><img src="/images/the-whole-life-of-a-variable/page-mapping.png" width="600" height="400" align="center"><br>如果程序接下来往下执行，需要访问P4，则操作系统需要作出抉择，必须放弃目前正在使用的4个内存页中的其中一个来装载P4。这种选择的算法有很多中，最常用的一种算法为LRU（least recently used）。</p>
 <h4 id="从操作系统角度看可执行文件的装载"><a href="#从操作系统角度看可执行文件的装载" class="headerlink" title="从操作系统角度看可执行文件的装载"></a>从操作系统角度看可执行文件的装载</h4><p>上面有提到，通常情况下，一个程序被执行同时都伴随着一个新的进程的创建。在这个过程中，需要做三件事情：</p>
 <ol>
 <li>创建一个独立的虚拟地址空间</li>
