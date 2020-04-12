@@ -58,7 +58,7 @@ ga('send', 'pageview');
 --->
 </div>
 
-<ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#前言"><span class="toc-text">前言</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#地址空间"><span class="toc-text">地址空间</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#地址转换"><span class="toc-text">地址转换</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#分段与分页"><span class="toc-text">分段与分页</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#页表"><span class="toc-text">页表</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#页表里有什么"><span class="toc-text">页表里有什么</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#如何进行地址转换"><span class="toc-text">如何进行地址转换</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#页表存在哪里"><span class="toc-text">页表存在哪里</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#快速地址转换"><span class="toc-text">快速地址转换</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#CPU访问变量全过程"><span class="toc-text">CPU访问变量全过程</span></a></li></ol>
+<ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#前言"><span class="toc-text">前言</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#地址空间"><span class="toc-text">地址空间</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#地址转换"><span class="toc-text">地址转换</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#分段与分页"><span class="toc-text">分段与分页</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#页表"><span class="toc-text">页表</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#页表里有什么"><span class="toc-text">页表里有什么</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#如何进行地址转换"><span class="toc-text">如何进行地址转换</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#页表存在哪里"><span class="toc-text">页表存在哪里</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#快速地址转换"><span class="toc-text">快速地址转换</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#CPU访问变量全过程"><span class="toc-text">CPU访问变量全过程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#小结"><span class="toc-text">小结</span></a></li></ol>
 <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>本文承接上一篇博客，尝试分析变量在内存中被访问的机制。</p>
 <h3 id="地址空间"><a href="#地址空间" class="headerlink" title="地址空间"></a>地址空间</h3><p>每一个进程都有自己的地址空间，其中包含运行的程序的所有内存状态。</p>
 <p>操作系统将属于不同进程的地址空间进行隔离，从而防止互相伤害。通过内存隔离，操作系统页进一步去保运行程序不会影响底层操作系统的操作。</p>
@@ -103,6 +103,7 @@ ga('send', 'pageview');
 <p>CPU访问该变量的全过程简化描述如下（此处忽略cache的参与）：</p>
 <img src="/images/the-whole-life-of-a-variable/variable-access-process.png" align="center">
 
+<h3 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h3><p>变量variable从源文件被编译成可执行文件，然后被加载到内存，最后被正确访问，大致过程如上述两篇文章中所概括。</p>
 
 
 <!--<a href="http://www.howar.cn/2019/01/22/the-whole-life-of-a-variable-2/#disqus_thread" class="article-comment-link">Comments</a>
