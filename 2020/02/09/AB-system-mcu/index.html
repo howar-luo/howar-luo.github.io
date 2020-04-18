@@ -1,0 +1,180 @@
+<html>
+<head><meta name="generator" content="Hexo 3.9.0">
+	
+	<title>基于MCU打造A/B双系统启动和升级</title>
+	<meta name="keywords" content="howar.cn">
+
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+    
+	   <link href="/css/main.css?v=3" rel="stylesheet" type="text/css">
+    
+        <script src="/js/util.js"></script>
+        <script>
+            if(isMobile()) {
+                loadjscssfile('../css/mobile.css', 'css');
+            } else {
+                loadjscssfile('../css/desktop.css', 'css');
+            }
+        </script> 
+    
+
+    <link rel="alternate" type="application/atom+xml" href="/atom.xml" title="Atom feed">
+
+    
+	<link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=3">
+    
+    
+<!-- Google Analytics -->
+<script type="text/javascript">
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+ga('create', 'UA-159646423-1', 'auto');
+ga('send', 'pageview');
+
+</script>
+<!-- End Google Analytics -->
+
+
+</head>
+
+<body>
+
+
+<h2 class="title">基于MCU打造A/B双系统启动和升级</h2>
+<!---
+<div style="text-align:center;margin-top: -10px;">
+<div class="article-category">
+发表于2020年2月9日
+
+
+
+
+ </div>
+--->
+</div>
+
+<ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#前言"><span class="toc-text">前言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#总体方案介绍"><span class="toc-text">总体方案介绍</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#系统分区"><span class="toc-text">系统分区</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#启动流程"><span class="toc-text">启动流程</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#方案实现"><span class="toc-text">方案实现</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#bootloader如何选择启动分区"><span class="toc-text">bootloader如何选择启动分区</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#如何进行程序跳转"><span class="toc-text">如何进行程序跳转</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#如何制作bank-a和bank-b对应的固件"><span class="toc-text">如何制作bank_a和bank_b对应的固件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#升级流程"><span class="toc-text">升级流程</span></a></li></ol></li></ol>
+<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>上一篇文章提到，基于u-boot+Linux的平台，可利用其对MMU、虚拟内存、文件系统等的支持，通过修改u-boot相关源码可实现对A/B双系统的引导和升级。而对于单片机系统，通常无法支持上述功能。对于一些使用单片机，但对完备性要求较高的场景（比如汽车/物联网等），如果想实现双系统的引导和升级，需要另辟蹊径。本文尝试给出一种方案。</p>
+<p>本方案在STM32f215RG硬件平台上实现。</p>
+<h2 id="总体方案介绍"><a href="#总体方案介绍" class="headerlink" title="总体方案介绍"></a>总体方案介绍</h2><h3 id="系统分区"><a href="#系统分区" class="headerlink" title="系统分区"></a>系统分区</h3><p>MCU不像Linux平台可以支持复杂文件系统，其地址为线性地址，从用户手册上可以查到其flash地址划分如下：</p>
+<img src="/images/AB-system-mcu/flash-organization.png" align="center">
+
+<p>可供应用程序使用的是Main memory对应的1M flash空间。MCU上电后，从0x08000000处取指令开始执行。为实现A/B系统引导和升级，可对flash作以下划分：</p>
+<table border="2" bordercolor="black" width="500" cellspacing="0" cellpadding="5">
+   <tr>
+      <td> bootloader_lite</td>
+      <td> 0x08000000-0x08003FFF (sector 0) </td>
+   </tr>
+   <tr>
+      <td> boot_flag </td>
+      <td> 0x08004000-0x08007FFF (sector 1) </td>
+   </tr>
+   <tr>
+      <td> bootloader </td>
+      <td> 0x08010000-0x0801FFFF (sector 4) </td>
+   </tr>
+   <tr>
+      <td> bank_a </td>
+      <td> 0x08040000-0x0809FFFF (sector 6/7/8) </td>
+   </tr>
+   <tr>
+      <td> bank_b </td>
+      <td> 0x080A0000-0x080FFFFF (sector 9/10/11) </td>
+   </tr>
+</table>
+
+<p>其中：</p>
+<ul>
+<li>bootloader_lite分区存放第一级bootloader。第一级bootloader的作用是用来升级第二级bootloader，其逻辑应当尽量简单，因为其不可在线更新</li>
+<li>boot_flag分区存放程序分区引导相关标志：上次运行分区标志；升级状态。下文将详细介绍</li>
+<li>bootloader分区存放第二级bootloader。第二级bootloader的作用是用来选择并跳转执行相应分区的应用程序</li>
+<li>bank_a分区存放A分区应用程序。其中该分区最后四个字节存放该分区被刷写次数counter_a</li>
+<li>bank_b分区存放B分区应用程序。其中该分区最后四个字节存放该分区被刷写次数counter_b</li>
+</ul>
+<p>上述分区方案并不唯一，只需遵循以下原则即可：</p>
+<ol>
+<li>boatloader_lite必须放在sector 0（从0x08000000开始）</li>
+<li>每个分区不垮sector，即每个分区包含一个或多个完整的sector</li>
+<li>每个分区的大小根据实际的需要分配</li>
+</ol>
+<h3 id="启动流程"><a href="#启动流程" class="headerlink" title="启动流程"></a>启动流程</h3><p>上文提到，MCU不支持MMU、虚拟内存、文件系统这些技术，因此也注定MCU的双系统启动流程与u-boot+Linux平台不同。</p>
+<p>在介绍其启动流程流程之前，先介绍一下该MCU中断向量表前8个字节，MCU的启动与这8个字节息息相关：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">前四个字节：存放栈地址，MCU启动后会取该四个字节到MSP寄存器</span><br><span class="line">后四个字节：存放复位中断服务函数Reset_Handler的地址，MCU启动后会取该四个字节到PC寄存器，从而开始执行程序启动</span><br></pre></td></tr></table></figure>
+
+<p>启动逻辑如下图所示：</p>
+<img src="/images/AB-system-mcu/boot-process.png" align="center">
+
+<h2 id="方案实现"><a href="#方案实现" class="headerlink" title="方案实现"></a>方案实现</h2><h3 id="bootloader如何选择启动分区"><a href="#bootloader如何选择启动分区" class="headerlink" title="bootloader如何选择启动分区"></a>bootloader如何选择启动分区</h3><p>上文启动流程中提到，bootloader会根据boot_flag区的相关标志，以及boot_a中的counter_a和boot_b中的counter_b来选择应该跳转的分区，这个过程至关重要。首先对该过程用到的各个标志作一些介绍：</p>
+<ol>
+<li><p>last_bank: 存放在boot_flag分区的前四个字节，存放上次运行的分区首地址，即为0x0804000或者0x080A0000，其它值视为无效值；</p>
+</li>
+<li><p>update_mark: 存放在boot_flag分区last_bank后的四个字节，存放升级状态</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">0: 准备升级。在application中，如果已经接收到升级文件并且准备开始进行相关flash擦写升级操作，则先将update_mark标志置为0</span><br><span class="line">1: 升级完成。在application中，如果flash擦写升级操作完成，则在复位重启前先将update_mark标志置为1</span><br><span class="line">2: 升级完成后临时状态。当flash擦写升级操作完成，并将update_mark标志置1重启后进入bootlader，在bootloader中会将update_mark标志临时置为2</span><br><span class="line">3: 新刷入的固件正确启动标志。当bootloader将update_mark标志置为2，正常启动新刷入的分区固件后，在application中会将此标志置为3</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>counter_a: 存放bank_a分区最后四个字节，存放刷写bank_a时系统总共被更新次数</p>
+</li>
+<li><p>counter_b: 存放bank_b分区最后四个字节，存放刷写bank_b时系统总共被更新次数</p>
+</li>
+</ol>
+<p>结合上述启动标志，下图展示bootloader选择启动分区流程：</p>
+<img src="/images/AB-system-mcu/choose-bank.png" align="center">
+
+<h3 id="如何进行程序跳转"><a href="#如何进行程序跳转" class="headerlink" title="如何进行程序跳转"></a>如何进行程序跳转</h3><p>无论从bootloader_lite到bootloader，还是bootloader到application，都涉及到程序跳转。MCU程序跳转需要处理三个点：</p>
+<ul>
+<li>MSP寄存器；设置堆栈指针<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">__<span class="function"><span class="keyword">asm</span> <span class="keyword">void</span> <span class="title">MSR_MSP</span><span class="params">(<span class="keyword">unsigned</span> <span class="keyword">int</span> addr)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	MSR MSP, r0</span><br><span class="line">	BX r14</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+</li>
+</ul>
+<p>上文也有提到，传入的addr即栈指针的值，从对应分区固件的起始四字节取。</p>
+<ul>
+<li>PC寄存器；取<code>Reset_Handler</code>指针赋给PC寄存器后直接执行<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">typedef</span> <span class="title">void</span> <span class="params">(*func)</span><span class="params">(<span class="keyword">void</span>)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">load_app</span><span class="params">(<span class="keyword">unsigned</span> <span class="keyword">int</span> addr)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	func jump2app = (func)addr;</span><br><span class="line">	jump2app();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+</li>
+</ul>
+<p>同样上文也有提到，传入的addr即<code>Reset_Handler</code>函数指针值，从对应分区固件的byte4-byte7取。</p>
+<ul>
+<li>中断向量表重定向<br>程序跳转之后，需要将中断向量表重定向到当前程序对应的地址。决定中断向量表地址的寄存器为<code>SCB-&gt;VTOR</code>，可以通过修改文件<code>system_stm32f2xx.c</code>中的宏<code>VECT_TAB_OFFSET</code>来使程序跳转后执行<code>SystemInit</code>函数来设置<code>SCB-&gt;VTOR</code>寄存器，从而实现中断向量表的重定向。<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">对于bootloader_lite/booloader/bank_a/bank_b，这个宏分别设置为：</span><br><span class="line"><span class="number">0x00</span></span><br><span class="line"><span class="number">0x10000</span></span><br><span class="line"><span class="number">0x40000</span></span><br><span class="line"><span class="number">0xA0000</span></span><br></pre></td></tr></table></figure>
+
+</li>
+</ul>
+<h3 id="如何制作bank-a和bank-b对应的固件"><a href="#如何制作bank-a和bank-b对应的固件" class="headerlink" title="如何制作bank_a和bank_b对应的固件"></a>如何制作bank_a和bank_b对应的固件</h3><p>由于MCU不支持虚拟内存，因此其物理地址必须和链接地址保持一致。这也就意味着bank_a和bank_b对应的固件有些许不同，只需要在同一工程中修改其ROM地址即可，即分别修改为0x08040000和0x080A0000。</p>
+<h3 id="升级流程"><a href="#升级流程" class="headerlink" title="升级流程"></a>升级流程</h3><p>MCU双分区升级流程如下图所示：</p>
+<img src="/images/AB-system-mcu/update-process.png" align="center">
+
+
+
+
+
+
+
+<!--<a href="http://www.howar.cn/2020/02/09/AB-system-mcu/#disqus_thread" class="article-comment-link">Comments</a>
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+    var disqus_shortname = ''; // required: replace example with your forum shortname
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+-->
+<div style="display:none">
+<script src="http://s4.cnzz.com/stat.php?id=&web_id=" language="JavaScript"></script>script>
+</div>
+
+
+
+
+
+
+</body>
+</html>
