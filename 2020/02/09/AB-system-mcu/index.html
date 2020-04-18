@@ -107,7 +107,7 @@ ga('send', 'pageview');
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">前四个字节：存放栈地址，MCU启动后会取该四个字节到MSP寄存器</span><br><span class="line">后四个字节：存放复位中断服务函数Reset_Handler的地址，MCU启动后会取该四个字节到PC寄存器，从而开始执行程序启动</span><br></pre></td></tr></table></figure>
 
 <p>启动逻辑如下图所示：</p>
-<img src="/images/AB-system-mcu/boot-process.png" align="center">
+<img src="/images/AB-system-mcu/boot-process.png" width="460" height="700" align="center">
 
 <h2 id="方案实现"><a href="#方案实现" class="headerlink" title="方案实现"></a>方案实现</h2><h3 id="bootloader如何选择启动分区"><a href="#bootloader如何选择启动分区" class="headerlink" title="bootloader如何选择启动分区"></a>bootloader如何选择启动分区</h3><p>上文启动流程中提到，bootloader会根据boot_flag区的相关标志，以及boot_a中的counter_a和boot_b中的counter_b来选择应该跳转的分区，这个过程至关重要。首先对该过程用到的各个标志作一些介绍：</p>
 <ol>
@@ -122,7 +122,7 @@ ga('send', 'pageview');
 </li>
 </ol>
 <p>结合上述启动标志，下图展示bootloader选择启动分区流程：</p>
-<img src="/images/AB-system-mcu/choose-bank.png" align="center">
+<img src="/images/AB-system-mcu/choose-bank.png" width="700" height="460" align="center">
 
 <h3 id="如何进行程序跳转"><a href="#如何进行程序跳转" class="headerlink" title="如何进行程序跳转"></a>如何进行程序跳转</h3><p>无论从bootloader_lite到bootloader，还是bootloader到application，都涉及到程序跳转。MCU程序跳转需要处理三个点：</p>
 <ul>
@@ -144,7 +144,7 @@ ga('send', 'pageview');
 </ul>
 <h3 id="如何制作bank-a和bank-b对应的固件"><a href="#如何制作bank-a和bank-b对应的固件" class="headerlink" title="如何制作bank_a和bank_b对应的固件"></a>如何制作bank_a和bank_b对应的固件</h3><p>由于MCU不支持虚拟内存，因此其物理地址必须和链接地址保持一致。这也就意味着bank_a和bank_b对应的固件有些许不同，只需要在同一工程中修改其ROM地址即可，即分别修改为0x08040000和0x080A0000。</p>
 <h3 id="升级流程"><a href="#升级流程" class="headerlink" title="升级流程"></a>升级流程</h3><p>MCU双分区升级流程如下图所示：</p>
-<img src="/images/AB-system-mcu/update-process.png" align="center">
+<img src="/images/AB-system-mcu/update-process.png" width="460" height="700" align="center">
 
 
 
