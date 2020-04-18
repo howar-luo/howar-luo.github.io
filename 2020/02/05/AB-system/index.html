@@ -103,10 +103,10 @@ ga('send', 'pageview');
 <li>boot_bank: 当前启动分区标识</li>
 </ul>
 <p>启动逻辑如下图所示：</p>
-<img src="/images/AB-system/uboot-boot.png" width="900" height="600" align="center">
+<img src="/images/AB-system/uboot-boot.png" width="910" height="493" align="center">
 
 <h3 id="升级流程"><a href="#升级流程" class="headerlink" title="升级流程"></a>升级流程</h3><p>基于系统分区和启动流程对A/B双系统的支持，可进行A/B更新刷写，具体的流程如下图所示：</p>
-<img src="/images/AB-system/update-process.png" width="330" height="550" align="center">
+<img src="/images/AB-system/update-process.png" width="270" height="525" align="center">
 
 <h2 id="方案实现"><a href="#方案实现" class="headerlink" title="方案实现"></a>方案实现</h2><h3 id="下载u-boot源码"><a href="#下载u-boot源码" class="headerlink" title="下载u-boot源码"></a>下载u-boot源码</h3><p>由于本方案需要修改并重新编译u-boot，所以首先需要下载u-boot源码。本文基于硬件平台s32v234sbc，NXP官方已经有对应u-boot仓库，因此只需要执行一下命令即可下载u-boot源码：</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">git clone https://source.codeaurora.org/external/autobsps32/u-boot</span><br><span class="line">cd u-boot</span><br><span class="line">git checkout -b &lt;branch_name&gt; v2018.07_bsp22.0</span><br></pre></td></tr></table></figure>
