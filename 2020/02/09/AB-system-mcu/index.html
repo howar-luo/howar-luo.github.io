@@ -62,7 +62,7 @@ ga('send', 'pageview');
 <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>上一篇文章提到，基于u-boot+Linux的平台，可利用其对MMU、虚拟内存、文件系统等的支持，通过修改u-boot相关源码可实现对A/B双系统的引导和升级。而对于单片机系统，通常无法支持上述功能。对于一些使用单片机，但对完备性要求较高的场景（比如汽车/物联网等），如果想实现双系统的引导和升级，需要另辟蹊径。本文尝试给出一种方案。</p>
 <p>本方案在STM32f215RG硬件平台上实现。</p>
 <h2 id="总体方案介绍"><a href="#总体方案介绍" class="headerlink" title="总体方案介绍"></a>总体方案介绍</h2><h3 id="系统分区"><a href="#系统分区" class="headerlink" title="系统分区"></a>系统分区</h3><p>MCU不像Linux平台可以支持复杂文件系统，其地址为线性地址，从用户手册上可以查到其flash地址划分如下：</p>
-<img src="/images/AB-system-mcu/flash-organization.png" align="center">
+<img src="/images/AB-system-mcu/flash-organization.png" width="700" height="460" align="center">
 
 <p>可供应用程序使用的是Main memory对应的1M flash空间。MCU上电后，从0x08000000处取指令开始执行。为实现A/B系统引导和升级，可对flash作以下划分：</p>
 <table border="2" bordercolor="black" width="500" cellspacing="0" cellpadding="5">
