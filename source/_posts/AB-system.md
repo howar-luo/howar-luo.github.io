@@ -1,6 +1,6 @@
 ---
 title: 基于u-boot+linux平台打造A/B双系统启动和升级
-date: 2020-02-05 15:14:42
+date: 2019-02-05 15:14:42
 categories:
 tags:
 ---
