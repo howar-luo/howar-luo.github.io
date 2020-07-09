@@ -85,7 +85,7 @@ ga('send', 'pageview');
 <li>进程上下文中的其他区域</li>
 </ol>
 <p>上述四类区间中，只有第四类区间支持抢占调度。当可以调度的事情发生在前3类区间中，即如果在这3类区间中唤醒了高优先级的可以抢占的task，实际上却不能抢占，直到这3类区间结束。</p>
-<p>用一个例子说明如下：<br><img src="/images/embedded-linux-real-time/preemptive.png" width="1172" height="854" align="center"></p>
+<p>用一个例子说明如下：<br><img src="/images/embedded-linux-real-time/preemptive.png" width="703" height="512" align="center"></p>
 <p>如上图所示：</p>
 <ul>
 <li>T0时刻<code>Normal task</code>因为<code>syscall</code>陷入内核</li>
@@ -141,7 +141,7 @@ ga('send', 'pageview');
 
 <p>然后进行<code>Kernel Image, Modules &amp; Device Tree Overlays</code>的安装，在树莓派上执行以下命令：</p>
 <blockquote>
-<p>注意，在安装一之前，要测试以下原内核的实时性能，测试方法下文中有介绍</p>
+<p>注意，在安装之前，要测试以下原内核的实时性能，测试方法下文中有介绍</p>
 </blockquote>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">~$ cd /tmp</span><br><span class="line">/tmp$ tar xzf rt-kernel.tgz</span><br><span class="line">/tmp$ cd boot</span><br><span class="line">/tmp/boot$ sudo cp -rd * /boot/</span><br><span class="line">/tmp/boot$ cd ../lib</span><br><span class="line">/tmp/lib$ sudo cp -dr * /lib/</span><br><span class="line">/tmp/lib$ cd ../overlays</span><br><span class="line">/tmp/overlays$ sudo cp -d * /boot/overlays</span><br><span class="line">/tmp/overlays$ cd ..</span><br><span class="line">/tmp$ sudo cp -d bcm* /boot/</span><br></pre></td></tr></table></figure>
 
