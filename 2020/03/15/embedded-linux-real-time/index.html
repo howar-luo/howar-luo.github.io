@@ -85,7 +85,7 @@ ga('send', 'pageview');
 <li>进程上下文中的其他区域</li>
 </ol>
 <p>上述四类区间中，只有第四类区间支持抢占调度。当可以调度的事情发生在前3类区间中，即如果在这3类区间中唤醒了高优先级的可以抢占的task，实际上却不能抢占，直到这3类区间结束。</p>
-<p>用一个例子说明如下：<br><img src="/images/embedded-linux-real-time/preemptive.png" width="703" height="512" align="center"></p>
+<p>用一个例子说明如下：<br><img src="/images/embedded-linux-real-time/preemptive.png" width="586" height="427" align="center"></p>
 <p>如上图所示：</p>
 <ul>
 <li>T0时刻<code>Normal task</code>因为<code>syscall</code>陷入内核</li>
